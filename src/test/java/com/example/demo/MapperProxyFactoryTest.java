@@ -1,18 +1,16 @@
 package com.example.demo;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
 
+import com.example.demo.binding.MapperProxyFactory;
+import com.example.demo.binding.MapperRegistry;
+import com.example.demo.dao.ISchoolDao;
+import com.example.demo.dao.IUserDao;
+import com.example.demo.session.SqlSession;
+import com.example.demo.session.SqlSessionFactory;
+import com.example.demo.session.defaults.DefaultSqlSessionFactory;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
 
-import java.lang.reflect.Proxy;
 import java.util.HashMap;
 import java.util.Map;
 /**
@@ -22,17 +20,22 @@ import java.util.Map;
 public class MapperProxyFactoryTest {
     @Test
     public void invokeProxyMethod_success(){
-        MapperProxyFactory<IUserDao> factory = new MapperProxyFactory<>(IUserDao.class);
+        MapperRegistry registry = new MapperRegistry();
+        registry.addMappers("com.example.demo.dao");
 
-        Map<String, String> sqlSession = new HashMap<>();
-        sqlSession.put("com.example.demo.IUserDao.queryUserName","queryUserName");
-        sqlSession.put("com.example.demo.IUserDao.queryUserAge","queryUserAge");
-        IUserDao userDao = factory.newInstance(sqlSession);
+        SqlSessionFactory sqlSessionFactory = new DefaultSqlSessionFactory(registry);
+        SqlSession sqlSession = sqlSessionFactory.openSession();
 
-        String res = userDao.queryUserName("1");
-        assertEquals("proxy: queryUserName", res);
+        IUserDao iUserDao = sqlSession.getMapper(IUserDao.class);
+        ISchoolDao iSchoolDao = sqlSession.getMapper(ISchoolDao.class);
 
-        String age = userDao.queryUserAge("1");
-        assertEquals("proxy: queryUserAge", age);
+
+
+
+        String res = iUserDao.queryUserName("1");
+        assertEquals("proxy: method queryUserName" + " parameter 1", res);
+
+        String age = iSchoolDao.querySchoolName("2");
+        assertEquals("proxy: method querySchoolName" + " parameter 2", age);
     }
 }

@@ -1,4 +1,6 @@
-package com.example.demo;
+package com.example.demo.binding;
+
+import com.example.demo.session.SqlSession;
 
 import java.io.Serializable;
 import java.lang.reflect.InvocationHandler;
@@ -15,9 +17,9 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
   private static final long serialVersionUID = -6424540398559729838L;
 
   private final Class<T> mapperInterface;
-  private Map<String, String> sqlSession;
+  private SqlSession sqlSession;
 
-  public MapperProxy(Map<String, String> sqlSession, Class<T> mapperInterface) {
+  public MapperProxy(SqlSession sqlSession, Class<T> mapperInterface) {
     this.sqlSession = sqlSession;
     this.mapperInterface = mapperInterface;
   }
@@ -32,7 +34,7 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
     if (Object.class.equals(method.getDeclaringClass())) { // 如果是 Object 提供的 toString、hashCode 等方法是不需要代理执行的
       return method.invoke(this, args);
     } else {
-      return "proxy: " + sqlSession.get(mapperInterface.getName() + "." + method.getName()); // 代理调用对数据库的操作
+      return sqlSession.selectOne(method.getName(), args); // 代理调用对数据库的操作
     }
   }
 }
